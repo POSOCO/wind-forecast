@@ -1,0 +1,15 @@
+<html>
+<head>
+    <script src="libs/js/plotly-latest.min.js"></script>
+</head>
+<body>
+<span>Upload data here </span><input type="file" id="dataReadButton">
+<br>
+<button onclick="plotForecast()">DoForecast</button>
+<button onclick="plotHourAheadForecast()">doHourAheadForecast</button>
+<div id="plotArea" style="width:90%;height:600px;"></div>
+<script src="libs/js/csvToArray.js"></script>
+<script src="dataReader.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
