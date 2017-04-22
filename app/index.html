@@ -1,13 +1,46 @@
 <html>
 <head>
     <script src="libs/js/plotly-latest.min.js"></script>
+    <style>
+        body {
+            padding-left: 50px;
+        }
+    </style>
 </head>
 <body>
 <span>Upload data here </span><input type="file" id="dataReadButton">
-<br>
 <button onclick="plotForecast()">DoForecast</button>
 <button onclick="plotHourAheadForecast()">doHourAheadForecast</button>
+<br>
+<input type="checkbox" id="showActualChk" name="showActualChk" onchange="showActual(this.checked)"/><label
+        for="showActualChk">Show
+    Actual MW</label>
+<input type="checkbox" id="showYestChk" name="showYestChk" onchange="showNminus(1,this.checked)"/><label
+        for="showYestChk">Show
+    N-1
+    MW</label>
+<input type="checkbox" id="showNMinus2Chk" name="showNMinus2Chk" onchange="showNminus(2,this.checked)"/><label
+        for="showNMinus2Chk">Show
+    N-2
+    MW</label>
+<input type="checkbox" id="showNMinus3Chk" name="showNMinus3Chk" onchange="showNminus(3,this.checked)"/><label
+        for="showNMinus3Chk">Show
+    N-3
+    MW</label>
+<input type="checkbox" id="showForecastChk" name="showForecastChk" checked onchange="showForecast(this.checked)"/><label
+        for="showForecastChk">Show Day Ahead Forecast
+    MW</label>
+<input type="checkbox" id="showHrAheadChk" name="showHrAheadChk" checked
+       onchange="showHourAheadForecast(this.checked)"/><label
+        for="showHrAheadChk">Show Hour Ahead Forecast
+    MW</label>
+<br>
+<span>Current Block - </span><span id="blkNumView">NA</span>
+
 <div id="plotArea" style="width:90%;height:600px;"></div>
+<br>
+<button onclick="seedData(0)">Use 10-7 data</button>
+<button onclick="seedData(1)">Use 9-6 data</button>
 <script src="libs/js/csvToArray.js"></script>
 <script src="dataReader.js"></script>
 <script src="index.js"></script>

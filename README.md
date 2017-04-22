@@ -2,4 +2,4 @@
 A Project that is intended to forecast wind
 
 ## Todos
-1. Add moving averages into the forecasting logic
+1. Add eDNA fetching feature to the app 
