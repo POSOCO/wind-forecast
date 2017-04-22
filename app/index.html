@@ -3,6 +3,7 @@
     <script src="libs/js/plotly-latest.min.js"></script>
     <style>
         body {
+            padding-top: 12px;
             padding-left: 50px;
         }
     </style>
@@ -10,9 +11,9 @@
 </head>
 <body>
 <span>Upload data here </span><input type="file" id="dataReadButton">
-<button onclick="plotForecast()">DoForecast</button>
-<button onclick="plotHourAheadForecast()">doHourAheadForecast</button>
-<br>
+<button onclick="plotForecast()">Day Ahead Forecast</button>
+<button onclick="plotHourAheadForecast()">Hour Ahead Forecast</button>
+<br><br>
 <input type="checkbox" id="showActualChk" name="showActualChk" onchange="showActual(this.checked)"/><label
         for="showActualChk">Show
     Actual MW</label>
@@ -42,6 +43,9 @@
 <br>
 <button onclick="seedData(0)">Use 10-7 data</button>
 <button onclick="seedData(1)">Use 9-6 data</button>
+<br><br><br><br>
+<footer>Code hosted at <a href="https://github.com/POSOCO/wind-forecast/tree/gh-pages/app" target="_blank">https://github.com/POSOCO/wind-forecast/tree/gh-pages/app</a>
+</footer>
 <script src="libs/js/csvToArray.js"></script>
 <script src="dataReader.js"></script>
 <script src="index.js"></script>
