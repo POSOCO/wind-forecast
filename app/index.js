@@ -1,6 +1,11 @@
 var dataReader_ = new DataReader();
 dataReader_.setConsIDs(["dataReadButton"]);
 
+function stateSelectChangeFunction() {
+    //var x = document.getElementById("mySelect").value;
+    //document.getElementById("demo").innerHTML = "You selected: " + x;
+}
+
 document.onreadystatechange = function () {
     if (document.readyState == "interactive") {
 
