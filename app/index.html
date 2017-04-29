@@ -44,6 +44,11 @@
 <div id="plotArea" style="width:90%;height:600px;"></div>
 <br>
 <span>eDNA Point Id - </span><input style="width: 200px" type="text" id="eDNApntIdInput" value="">
+<select onchange="stateSelectChangeFunction()">
+  <option value="WRLDCMP.SCADA1.A0047236">Gujarat Wind Forecast</option>
+  <option value="WRLDCMP.SCADA1.A0047236">Maharashtra Wind Forecast</option>
+  <option value="WRLDCMP.SCADA1.A0047236">Madhya Pradesh Wind Forecast</option>
+</select>
 <button onclick="updateeDNAPntId()">Update</button>
 <br>
 <button onclick="seedData(0)">Use 10-7 data</button>
