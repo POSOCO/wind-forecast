@@ -2,8 +2,12 @@ var dataReader_ = new DataReader();
 dataReader_.setConsIDs(["dataReadButton"]);
 
 function stateSelectChangeFunction() {
-    //var x = document.getElementById("mySelect").value;
-    //document.getElementById("demo").innerHTML = "You selected: " + x;
+    var e = e || window.event;
+    var targ = e.target || e.srcElement;
+    if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+    eDNAPnt_ = targ.value;
+    //update eDNA Point input value
+    document.getElementById("eDNApntIdInput").value = eDNAPnt_;
 }
 
 document.onreadystatechange = function () {
