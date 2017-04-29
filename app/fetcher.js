@@ -36,9 +36,11 @@ function convertJSONtoArray(data) {
 
 function getDayHistoryArray(pnt, dayObj, callback) {
     //var dayObj = new Date(2017, 3, 28);
+	var tomm = new Date(dayObj);
+	tomm.setDate(tomm.getDate()+1);
     $.ajax({
         //fetch categories from sever
-        url: createUrl(pnt, dayObj, new Date(dayObj + 24 * 3600 * 1000)),
+        url: createUrl(pnt, dayObj, tomm),
         type: "GET",
         dataType: "json",
         success: function (data) {
@@ -61,7 +63,7 @@ function updateDayArrays(callback) {
         var getDayData = function (dayIterator, callback) {
             var dayOffset = dayIterator;
             var target_date = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
-            target_date = new Date(target_date - dayOffset * 24 * 3600 * 1000);
+            target_date = new Date(target_date - dayOffset * 86400000);
             getDayHistoryArray(eDNAPnt_, target_date, function (err, data) {
                 if (err) {
                     return callback(err);
