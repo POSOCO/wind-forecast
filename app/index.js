@@ -8,6 +8,17 @@ function stateSelectChangeFunction() {
     eDNAPnt_ = targ.value;
     //update eDNA Point input value
     document.getElementById("eDNApntIdInput").value = eDNAPnt_;
+    // fetch n to n-4 data from server
+    updateDayArrays(function (err, result) {
+        if (err) {
+            console.log("Error");
+            console.log(err);
+            return;
+        }
+        console.log("Result");
+        console.log(result);
+        //plot day ahead forecast
+    });
 }
 
 document.onreadystatechange = function () {
