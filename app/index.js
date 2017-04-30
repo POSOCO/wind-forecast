@@ -9,7 +9,7 @@ function stateSelectChangeFunction() {
     //update eDNA Point input value
     document.getElementById("eDNApntIdInput").value = eDNAPnt_;
     // fetch n to n-4 data from server
-    updateDayArrays(function (err, result) {
+    updateDayArrays(4, function (err, result) {
         if (err) {
             console.log("Error");
             console.log(err);
@@ -17,7 +17,9 @@ function stateSelectChangeFunction() {
         }
         console.log("Result");
         console.log(result);
-        //plot day ahead forecast
+        // plot day ahead forecast
+        changePlotTitle();
+        plotForecast();
     });
 }
 
@@ -46,7 +48,7 @@ function seedData(num) {
 
 seedData(1);
 var same_day_forecast_error_threshold_mw = 100;
-var error_influence_perc = 50;
+var error_influence_perc = 70;
 var same_day_forecast_modify_threshold_perc = 50;
 var num_days = 3; //num of days for forecast
 var n_blocks = 96;
@@ -115,15 +117,23 @@ function initializePlotDiv() {
     };
     var plotData = [trace1, trace2, trace3, trace4, trace5, trace6];
     var layoutOpt = {
+        title: "Wind Forecast",
         xaxis: {
             dtick: 1
         },
         yaxis: {
             dtick: 100
         },
-        margin: {l: 30, pad: 4, t: 0}
+        margin: {l: 30, pad: 4, t: 50}
     };
     Plotly.newPlot(plotDiv, plotData, layoutOpt);
+}
+
+function changePlotTitle() {
+    var stateSelElem = document.getElementById("stateSelectInput");
+    var stateText = stateSelElem.options[stateSelElem.selectedIndex].text;
+    var plotDiv = document.getElementById('plotArea');
+    plotDiv.layout.title = stateText + " for " + document.getElementById("forecastDate").value;
 }
 
 function calculateAvgMWofDay(d) {
@@ -197,19 +207,21 @@ function plotForecast() {
         return k + 1
     });
     doForecast();
+    // check the show day ahead forecast checkbox
+    document.getElementById("showForecastChk").checked = true;
     // initializing hour_ahead_forecast_block_mw_
     plotDiv.data[0].y = forecast_block_mw_;
     Plotly.redraw(plotDiv);
 }
 
-function doHourAheadForecast(cur_blk) {
+function doHourAheadForecast(time_blk) {
     var actual_mws = getDayMWs(0);
     //todo calculate the avg forecast error of last 4 blks or 2 blks
-    var forecast_error = actual_mws[cur_blk] - forecast_block_mw_[cur_blk];
+    var forecast_error = actual_mws[time_blk] - forecast_block_mw_[time_blk];
     if (Math.abs(forecast_error) > same_day_forecast_error_threshold_mw) {
         //Calculate the compensation to add to the forthcoming blocks
         var compensateMW = forecast_error * error_influence_perc * 0.01;
-        for (var blk = cur_blk + 3; blk < n_blocks; blk++) {
+        for (var blk = time_blk + 3; blk < n_blocks; blk++) {
             var compensationLimit = forecast_block_mw_[blk] * same_day_forecast_modify_threshold_perc * 0.01;
             var adjustment = compensateMW;
             if (Math.abs(adjustment) > Math.abs(compensationLimit)) {
@@ -218,7 +230,7 @@ function doHourAheadForecast(cur_blk) {
             hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk] + adjustment;
         }
     } else {
-        for (var blk = cur_blk + 3; blk < n_blocks; blk++) {
+        for (var blk = time_blk + 3; blk < n_blocks; blk++) {
             hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
         }
     }
@@ -228,6 +240,9 @@ function plotHourAheadForecast() {
     for (var blk = 0; blk < n_blocks; blk++) {
         hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
     }
+    // check the show hour ahead forecast checkbox
+    document.getElementById("showHrAheadChk").checked = true;
+
     /*for (var i = 0; i < n_blocks; i++) {
      doHourAheadForecast(i);
      }
@@ -291,7 +306,7 @@ function showHourAheadForecast(bool) {
     Plotly.redraw(plotDiv);
 }
 
-function showNminus(num, bool) {
+function showNMinus(num, bool) {
     var plotDiv = document.getElementById('plotArea');
     if (!bool) {
         plotDiv.data[2 + num].y = [];
