@@ -131,6 +131,7 @@ function changePlotTitle() {
     var stateText = stateSelElem.options[stateSelElem.selectedIndex].text;
     var plotDiv = document.getElementById('plotArea');
     plotDiv.layout.title = stateText + " for " + document.getElementById("forecastDate").value;
+    document.title = "" + stateText;
 }
 
 function calculateAvgMWofDay(d) {
@@ -196,6 +197,7 @@ function doForecast() {
         forecast_block_mw[blk] = forecast_block_mw_factors[blk] * forecast_avg_mw;
     }
     forecast_block_mw_ = forecast_block_mw;
+    calculateRMSEValsTill(n_blocks - 1);
 }
 
 function plotForecast() {
@@ -231,6 +233,7 @@ function doHourAheadForecast(time_blk) {
             hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
         }
     }
+    calculateRMSEValsTill(time_blk);
 }
 
 function doHourAheadForecastTill(time_blk) {
@@ -322,4 +325,52 @@ function showNMinus(num, bool) {
     var yst_mws = getDayMWs(num);
     plotDiv.data[2 + num].y = yst_mws;
     Plotly.redraw(plotDiv);
+}
+
+function calculateRMSEValsTill(time_blk) {
+    if (time_blk < 0) {
+        return;
+    }
+    var dayMWs = getDayMWs(0);
+    var dayAheadErrorSquareSigma = 0;
+    var hourAheadErrorSquareSigma = 0;
+    var actualSigma = 0;
+    for (var i = 0; i < time_blk; i++) {
+        //stub
+        dayAheadErrorSquareSigma += Math.pow((forecast_block_mw_[i] - dayMWs[i]), 2);
+        hourAheadErrorSquareSigma += Math.pow((hour_ahead_forecast_block_mw_[i] - dayMWs[i]), 2);
+        actualSigma += dayMWs[i];
+    }
+    var dayAheadRMSEMW = Math.sqrt(dayAheadErrorSquareSigma / (time_blk + 1));
+    var hourAheadRMSEMW = Math.sqrt(hourAheadErrorSquareSigma / (time_blk + 1));
+    var dayAheadRMSEPerc = (dayAheadRMSEMW * ((time_blk + 1) * 100)) / actualSigma;
+    var hourAheadRMSEPerc = (hourAheadRMSEMW * ((time_blk + 1) * 100)) / actualSigma;
+    updateRMSEViews({
+        dayAheadRMSEMW: dayAheadRMSEMW,
+        hourAheadRMSEMW: hourAheadRMSEMW,
+        dayAheadRMSEPerc: dayAheadRMSEPerc,
+        hourAheadRMSEPerc: hourAheadRMSEPerc
+    });
+}
+
+function updateRMSEViews(obj) {
+    if (obj == undefined || obj == null) {
+        return;
+    }
+    if (obj.dayAheadRMSEMW != undefined) {
+        document.getElementById("dayAheadRMSEMWView").innerHTML = getTwoDecimals(obj.dayAheadRMSEMW);
+    }
+    if (obj.hourAheadRMSEMW != undefined) {
+        document.getElementById("hourAheadRMSEMWView").innerHTML = getTwoDecimals(obj.hourAheadRMSEMW);
+    }
+    if (obj.dayAheadRMSEPerc != undefined) {
+        document.getElementById("dayAheadRMSEPercView").innerHTML = getTwoDecimals(obj.dayAheadRMSEPerc);
+    }
+    if (obj.hourAheadRMSEPerc != undefined) {
+        document.getElementById("hourAheadRMSEPercView").innerHTML = getTwoDecimals(obj.hourAheadRMSEPerc);
+    }
+}
+
+function getTwoDecimals(num3) {
+    return parseFloat(Math.round(num3 * 100) / 100).toFixed(2);
 }

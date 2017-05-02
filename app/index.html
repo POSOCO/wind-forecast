@@ -39,8 +39,12 @@
 <input type="checkbox" id="showHrAheadChk" name="showHrAheadChk" onchange="showHourAheadForecast(this.checked)"/><label
         for="showHrAheadChk">Show Hour Ahead Forecast
     MW</label>
-<br>
-<span>Current Block - </span><span id="blkNumView">NA</span>
+<br><br>
+<span>Latest Elapsed Block - </span><span id="blkNumView">NA</span>
+<span>||| RMSE MW(DayAhead) - </span><span id="dayAheadRMSEMWView">NA</span>
+<span>||| RMSE MW(HourAhead) - </span><span id="hourAheadRMSEMWView">NA</span>
+<span>||| RMSE %(DayAhead) - </span><span id="dayAheadRMSEPercView">NA</span>
+<span>||| RMSE %(HourAhead) - </span><span id="hourAheadRMSEPercView">NA</span>
 
 <div id="plotArea" style="width:90%;height:600px;"></div>
 <br>
