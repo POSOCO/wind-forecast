@@ -7,4 +7,4 @@ var eDNAPnt_ = "WRLDCMP.SCADA1.A0047236";
 
 var latestPlottedTB_ = -1;
 var realTimeForecastTimerId_ = null;
-var hourAheadForecastPlotIntervalMins_ = 5; // 5 mins
+var hourAheadForecastPlotIntervalMins_ = 10; // 10 mins
