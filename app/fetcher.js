@@ -139,7 +139,7 @@ function plotRealTimeForecast() {
         console.log(result);
         // do hour ahead forecast
         // plot the hour ahead forecast
-        doHourAheadForecast(currTb);
+        doHourAheadForecastTill(currTb);
         document.getElementById("blkNumView").innerHTML = currTb;
         plotHourAhead();
         latestPlottedTB_ = currTb;

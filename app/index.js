@@ -236,6 +236,15 @@ function doHourAheadForecast(time_blk) {
     }
 }
 
+function doHourAheadForecastTill(time_blk) {
+    for (var blk = 0; blk < n_blocks; blk++) {
+        hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
+    }
+    for (var i = 0; i < time_blk; i++) {
+        doHourAheadForecast(time_blk);
+    }
+}
+
 function plotHourAheadForecast() {
     for (var blk = 0; blk < n_blocks; blk++) {
         hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
