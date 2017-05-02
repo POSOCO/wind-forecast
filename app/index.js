@@ -1,10 +1,7 @@
 var dataReader_ = new DataReader();
 dataReader_.setConsIDs(["dataReadButton"]);
 
-function stateSelectChangeFunction() {
-    var e = e || window.event;
-    var targ = e.target || e.srcElement;
-    if (targ.nodeType == 3) targ = targ.parentNode; // defeat Safari bug
+function stateSelectChangeFunction(targ) {
     eDNAPnt_ = targ.value;
     //update eDNA Point input value
     document.getElementById("eDNApntIdInput").value = eDNAPnt_;
@@ -241,7 +238,7 @@ function doHourAheadForecastTill(time_blk) {
         hour_ahead_forecast_block_mw_[blk] = forecast_block_mw_[blk];
     }
     for (var i = 0; i < time_blk; i++) {
-        doHourAheadForecast(time_blk);
+        doHourAheadForecast(i);
     }
 }
 
