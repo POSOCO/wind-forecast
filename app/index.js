@@ -121,7 +121,7 @@ function initializePlotDiv() {
         yaxis: {
             dtick: 100
         },
-        margin: {l: 30, pad: 4, t: 50}
+        margin: {l: 50, pad: 4, t: 50}
     };
     Plotly.newPlot(plotDiv, plotData, layoutOpt);
 }
