@@ -1,0 +1,43 @@
+<!--
+Started on 03.06.2017 Saturday by Nagasudhir
+!-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Wind Forecast - DarkSky</title>
+    <link rel="shortcut icon" type="image/png" href="../favicon.png"/>
+</head>
+<body>
+<div>
+    <h2>Fetch Forecast Data</h2>
+    <table>
+        <tr>
+            <td><label for="api_key_input">API Key</label></td>
+            <td><input type="text" value="" id="api_key_input"></td>
+        </tr>
+        <tr>
+            <td><label for="lat_input">Latitude Input</label></td>
+            <td><input type="text" value="" id="lat_input"></td>
+        </tr>
+        <tr>
+            <td><label for="lng_input">Longitude Input</label></td>
+            <td><input type="text" value="" id="lng_input"></td>
+        </tr>
+        <tr>
+            <button onclick="getDarkSkyForecastData()">Fetch Forecast Data With DarkSky API</button>
+        </tr>
+    </table>
+    <h2>Presets</h2>
+    <select name="lat_lng_preset_select_input" id="lat_lng_preset_select_input">
+        <option value="19.0827699,72.7411179">MUMBAI</option>
+        <option value="22.3220425,73.0329983">VADODARA</option>
+    </select>
+    <button onclick="loadPresets()">Load Presets</button>
+    <div id="console" style="width:80%;height: 500px;overflow: scroll"></div>
+</div>
+<script src="../libs/js/jquery/jquery-1.7.min.js"></script>
+<script src="../custom-libs/js/consoleFunctions.js"></script>
+<script src="../custom-libs/js/timeUtils.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
