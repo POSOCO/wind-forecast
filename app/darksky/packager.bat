@@ -1,0 +1,1 @@
+electron-packager . darksky_app --arch=x64 --overwrite

@@ -1,0 +1,7 @@
+#tablesDiv table {
+    border-collapse: collapse;
+}
+
+#tablesDiv table, #tablesDiv th, #tablesDiv td {
+    border: 1px solid black;
+}
