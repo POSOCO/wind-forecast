@@ -22,37 +22,48 @@ Started on 03.06.2017 Saturday by Nagasudhir
         <tr>
             <td><label for="api_key_input">API Key</label></td>
             <td><input type="text" value="" id="api_key_input"></td>
+            <td><label for="wind_db_host_input">Wind Info DB host</label></td>
+            <td><input type="text" value="localhost" id="wind_db_host_input"></td>
         </tr>
         <tr>
             <td><label for="lat_input">Latitude Input</label></td>
             <td><input type="text" value="" id="lat_input"></td>
+            <td><label for="wind_db_username_input">Wind Info DB Username</label></td>
+            <td><input type="text" value="root" id="wind_db_username_input"></td>
         </tr>
         <tr>
             <td><label for="lng_input">Longitude Input</label></td>
             <td><input type="text" value="" id="lng_input"></td>
+            <td><label for="wind_db_password_input">Wind Info DB Password</label></td>
+            <td><input type="text" value="123" id="wind_db_password_input"></td>
         </tr>
         <tr>
-            <td><label for="date_input">Date Input (yyyy-mm-dd)</label></td>
+            <td><label for="date_input">Date Input</label></td>
             <td><input type="date" value="" id="date_input"></td>
         </tr>
         <tr>
             <td>
-                <button onclick="getDarkSkyForecastData()">Fetch Forecast Data With DarkSky API</button>
+                <button onclick="getDarkSkyForecastData()" style="max-width: 200px">Fetch Forecast Data With DarkSky
+                    API
+                </button>
             </td>
             <td>
-                <button onclick="getDarkSkyTimeMachineData()">Fetch Time Machine Data With DarkSky API</button>
+                <button onclick="getDarkSkyTimeMachineData()" style="max-width: 200px">Fetch Time Machine Data With
+                    DarkSky API
+                </button>
             </td>
         </tr>
     </table>
     <br>
     <button onclick="exportTableAsCsv()">Export Table As CSV</button>
+    <button onclick="saveDataArrayToDB(1)">Save Forecast Data to Database</button>
+    <button onclick="saveDataArrayToDB(0)">Save Time Machine Data to Database</button>
     <button onclick="clearTablesDiv()" id="clear_tables_button">Clear Tables</button>
     <br><br>
 
     <div id="tablesDiv"></div>
     <button onclick="clearConsole()">Clear Console</button>
-    <div id="console" style="width:30%;height: 200px;overflow: auto;border: 1px solid black"></div>
-
+    <div id="console" style="width:30%;height: 200px;overflow: auto;"></div>
 </div>
 <script src="custom-libs/js/consoleFunctions.js"></script>
 <script src="custom-libs/js/timeUtils.js"></script>

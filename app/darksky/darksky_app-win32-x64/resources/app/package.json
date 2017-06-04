@@ -4,7 +4,10 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-
+    "async": "^2.0.0-rc.5",
+    "mysql": "^2.10.2",
+    "sprintf-js": "^1.0.3",
+    "squel": "^5.10.0"
   },
   "devDependencies": {
     "electron-prebuilt": "^0.35.2"
