@@ -195,7 +195,9 @@ function connectToDB() {
 }
 
 function scada_file_upload_click() {
-    readFileText("scada_upload_button", function (fileText) {
+    readFileText("scada_file_input", function (fileText) {
         var dataArray = CSVToArray(fileText);
+        console.log(dataArray);
+        convertArrayToObjects(dataArray);
     });
 }

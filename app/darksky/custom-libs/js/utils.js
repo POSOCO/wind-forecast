@@ -64,3 +64,9 @@ function readFileText(fileInpId, callback) {
     };
     reader.readAsText(file);
 }
+
+function convertArrayToObjects(arr) {
+    if (arr.constructor != Array && arr.length < 1) {
+
+    }
+}
