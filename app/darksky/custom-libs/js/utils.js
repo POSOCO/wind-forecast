@@ -55,3 +55,12 @@ function convertToNumberString(valIn) {
     }
     return val;
 }
+
+function readFileText(fileInpId, callback) {
+    var reader = new FileReader();
+    var file = document.getElementById(fileInpId).files[0];
+    reader.onload = function (e) {
+        callback(reader.result);
+    };
+    reader.readAsText(file);
+}

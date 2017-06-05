@@ -155,6 +155,7 @@ function saveDataArrayToDB(isForecastData) {
     var callback = function (err, result) {
         if (err) {
             WriteLineConsole("Couldn't save the data. " + JSON.stringify(err));
+            return;
         }
         WriteLineConsole("Saved the data successfully...");
     };
@@ -186,8 +187,15 @@ function connectToDB() {
     db.connect(db.MODE_PRODUCTION, function (err) {
         if (err) {
             WriteLineConsole('Unable to connect to the Wind Info Database.');
+            return;
         } else {
             WriteLineConsole('Connected to the Wind Info Database!');
         }
     }, {'host': host, 'user': username, 'password': password});
+}
+
+function scada_file_upload_click() {
+    readFileText("scada_upload_button", function (fileText) {
+        var dataArray = CSVToArray(fileText);
+    });
 }
