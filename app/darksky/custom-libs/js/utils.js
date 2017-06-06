@@ -67,6 +67,22 @@ function readFileText(fileInpId, callback) {
 
 function convertArrayToObjects(arr) {
     if (arr.constructor != Array && arr.length < 1) {
-
+        return [];
     }
+    if (arr[0].constructor != Array && arr.length < 1) {
+        return [];
+    }
+    var objectsArray = [];
+    var colsArray = arr[0];
+    for (var i = 1; i < arr.length; i++) {
+        var arrRow = arr[i];
+        if (arrRow.length < colsArray.length) {
+            continue;
+        }
+        var timeStr = arrRow[0];
+        for (var k = 1; k < colsArray.length; k++) {
+            objectsArray.push({'time': timeStr, 'location_tag': colsArray[k], 'generation_mw': arrRow[k]});
+        }
+    }
+    return objectsArray;
 }

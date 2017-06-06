@@ -198,6 +198,7 @@ function scada_file_upload_click() {
     readFileText("scada_file_input", function (fileText) {
         var dataArray = CSVToArray(fileText);
         console.log(dataArray);
-        convertArrayToObjects(dataArray);
+        var scadaObjectsArray = convertArrayToObjects(dataArray);
+        console.log(scadaObjectsArray);
     });
 }
