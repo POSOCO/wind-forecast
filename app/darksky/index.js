@@ -170,9 +170,11 @@ function saveDataArrayToDB(isForecastData) {
 function loadPresets() {
     var selElement = document.getElementById("lat_lng_preset_select_input");
     var optionText = selElement.options[selElement.selectedIndex].value;
+    var scadaPntText = selElement.options[selElement.selectedIndex].getAttribute("data-scada_pnt");
     var latLng = optionText.split(",");
     document.getElementById("lat_input").value = latLng[0].trim();
     document.getElementById("lng_input").value = latLng[1].trim();
+    document.getElementById("scada_id_input").value = scadaPntText;
 }
 
 function clearTablesDiv() {
@@ -216,4 +218,16 @@ function scada_file_upload_click() {
             WriteLineConsole("Saved the scada data in DB successfully...");
         }, null);
     });
+}
+
+function getScadaDataFromDB() {
+    var scadaId = document.getElementById("scada_id_input").value;
+    var startDate = new Date(document.getElementById("date_input").value);
+    var endDate = new Date();
+    var hrs = 24;
+    endDate.setTime(startDate.getTime() + (hrs*60*60*1000));
+    Scada_Wind_Generation.getForLocation(scadaId, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function(err, rows){
+        console.log(rows);
+    }, null);
+
 }
