@@ -24,18 +24,23 @@ Started on 03.06.2017 Saturday by Nagasudhir
             <td><input type="text" value="" id="api_key_input"></td>
             <td><label for="wind_db_host_input">Wind Info DB host</label></td>
             <td><input type="text" value="localhost" id="wind_db_host_input"></td>
+            <td><label for="scada_file_input">Upload wind gen scada file</label></td>
         </tr>
         <tr>
             <td><label for="lat_input">Latitude Input</label></td>
             <td><input type="text" value="" id="lat_input"></td>
             <td><label for="wind_db_username_input">Wind Info DB Username</label></td>
             <td><input type="text" value="root" id="wind_db_username_input"></td>
+            <td style="padding-left: 10px"><input id="scada_file_input" type="file"></td>
         </tr>
         <tr>
             <td><label for="lng_input">Longitude Input</label></td>
             <td><input type="text" value="" id="lng_input"></td>
             <td><label for="wind_db_password_input">Wind Info DB Password</label></td>
             <td><input type="text" value="123" id="wind_db_password_input"></td>
+            <td style="padding-left: 10px">
+                <button id="scada_upload_button" onclick="scada_file_upload_click()">Upload to DB</button>
+            </td>
         </tr>
         <tr>
             <td><label for="date_input">Date Input</label></td>
@@ -70,6 +75,7 @@ Started on 03.06.2017 Saturday by Nagasudhir
 <script src="custom-libs/js/utils.js"></script>
 <script src="libs/js/math.min.js"></script>
 <script src="regression-methods.js"></script>
+<script src="custom-libs/js/csvToArray.js"></script>
 <script src="index.js"></script>
 </body>
 </html>

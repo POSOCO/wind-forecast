@@ -2,6 +2,7 @@
 var windSpeedsArray_g = [];
 var Forecast_Data = require("./models/wind_forecast_data");
 var Time_Data = require("./models/wind_time_data");
+var Scada_Wind_Generation = require("./models/scada_wind_generation");
 
 document.onreadystatechange = function () {
     if (document.readyState == "interactive") {
@@ -199,6 +200,20 @@ function scada_file_upload_click() {
         var dataArray = CSVToArray(fileText);
         console.log(dataArray);
         var scadaObjectsArray = convertArrayToObjects(dataArray);
+        if (scadaObjectsArray.length == 0) {
+            return WriteLineConsole("Zero rows present the csv file");
+        }
+        // Saving data*1000 so that three decimals places can be preserved
+        for (var i = 0; i < scadaObjectsArray.length; i++) {
+            scadaObjectsArray[i]['generation_mw'] *= 1000;
+        }
         console.log(scadaObjectsArray);
+        Scada_Wind_Generation.create(scadaObjectsArray, function (err, result) {
+            if (err) {
+                WriteLineConsole("Couldn't save the scada data in the DB. " + JSON.stringify(err));
+                return;
+            }
+            WriteLineConsole("Saved the scada data in DB successfully...");
+        }, null);
     });
 }
