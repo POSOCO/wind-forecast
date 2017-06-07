@@ -3,6 +3,10 @@ var windSpeedsArray_g = [];
 var Forecast_Data = require("./models/wind_forecast_data");
 var Time_Data = require("./models/wind_time_data");
 var Scada_Wind_Generation = require("./models/scada_wind_generation");
+var Regression_Solution = require("./models/regression_param_solution");
+var Regression_Param = require("./models/regression_param");
+var async = require("async");
+var vsprintf = require("sprintf-js").vsprintf;
 
 document.onreadystatechange = function () {
     if (document.readyState == "interactive") {
@@ -223,11 +227,113 @@ function scada_file_upload_click() {
 function getScadaDataFromDB() {
     var scadaId = document.getElementById("scada_id_input").value;
     var startDate = new Date(document.getElementById("date_input").value);
+    startDate.setHours(0);
+    startDate.setMinutes(0);
     var endDate = new Date();
     var hrs = 24;
-    endDate.setTime(startDate.getTime() + (hrs*60*60*1000));
-    Scada_Wind_Generation.getForLocation(scadaId, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function(err, rows){
+    endDate.setTime(startDate.getTime() + (hrs * 60 * 60 * 1000));
+    Scada_Wind_Generation.getForLocation(scadaId, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function (err, rows) {
         console.log(rows);
+        var scadaRowsArray = [];
+        for (var i = 0; i < rows.length; i++) {
+            scadaRowsArray.push([convertDateObjToDBStr(rows[i]["time"]), rows[i]["generation_mw"] / 1000]);
+        }
+        clearTablesDiv();
+        appendTable(scadaRowsArray, "tablesDiv");
     }, null);
+}
 
+function fitWindPowerData() {
+    var scada_tag = document.getElementById("scada_id_input").value;
+    var startDate = new Date(document.getElementById("date_input").value);
+    startDate.setHours(0);
+    startDate.setMinutes(0);
+    var endDate = new Date();
+    var hrs = 24;
+    endDate.setTime(startDate.getTime() + (hrs * 60 * 60 * 1000));
+    var location_tag_el = document.getElementById("lat_lng_preset_select_input");
+    var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
+    fitDataWindPowerFromDB(scada_tag, location_tag, startDate, endDate, function (err, theta) {
+        if (err) {
+            console.log(err);
+            return WriteLineConsole("Data not fitted due to Error: " + JSON.stringify(err));
+        }
+        WriteLineConsole("Solution for regression is " + theta.toString());
+        var thetaRows = [];
+        for (var i = 0; i < theta.length; i++) {
+            thetaRows.push({"param_degree": i, "param_value": theta[i][0]});
+        }
+        Regression_Solution.getWithCreation(location_tag, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function (err, rows) {
+            if (err) {
+                return WriteLineConsole("Error in saving the solution results: " + JSON.stringify(err));
+            }
+            var solution_id = rows[0].id;
+            for (var i = 0; i < thetaRows.length; i++) {
+                thetaRows[i]["solution_id"] = solution_id;
+            }
+            Regression_Param.create(thetaRows, function (err, rows) {
+                if (err) {
+                    return WriteLineConsole("Error in saving the Theta Values: " + JSON.stringify(err));
+                }
+                WriteLineConsole("Successfully saved the regression results in DB");
+            }, null);
+        }, null);
+    });
+}
+
+
+function fitDataWindPowerFromDB(scada_tag, location_tag, startDate, endDate, done) {
+    // Utility Function
+    var findIndexInObjectsArray = function (arr, key, value) {
+        var index = -1;
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i][key].toString() == value.toString()) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    };
+    // get hourly wind speeds from DB
+    var getWindSpeeds = function (callback) {
+        Time_Data.getForLocation(location_tag, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function (err, rows) {
+            console.log(rows);
+            if (err) return callback(err);
+            callback(null, {'wind_time_data': rows});
+        }, null);
+    };
+    // get hourly scada generation MW from DB
+    var getScadaData = function (prevRes, callback) {
+        Scada_Wind_Generation.getForLocation(scada_tag, convertDateObjToDBStr(startDate), convertDateObjToDBStr(endDate), function (err, rows) {
+            console.log(rows);
+            if (err) return callback(err);
+            prevRes['scada_wind_data'] = rows;
+            callback(null, prevRes);
+        }, null);
+    };
+
+    var functionsArray = [getWindSpeeds, getScadaData];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        console.log(prevRes);
+        var scadaGenObjectsArray = prevRes.scada_wind_data;
+        var windObjectsArray = prevRes.wind_time_data;
+        var dataSet = {"windsArray": [], "scadaGenArray": []};
+        // Creating the data set for regression
+        for (var i = 0; i < scadaGenObjectsArray.length; i++) {
+            var sampleTime = scadaGenObjectsArray[i].time;
+            var index = findIndexInObjectsArray(windObjectsArray, "time", sampleTime);
+            if (index != -1) {
+                dataSet.windsArray.push([windObjectsArray[index]["wind_speed"] * 0.01]);
+                dataSet.scadaGenArray.push([scadaGenObjectsArray[index]["generation_mw"] * 0.001]);
+            }
+        }
+        // check if we have at least 3 samples
+        if (dataSet.scadaGenArray.length < 3) {
+            return done(new Error(vsprintf("Insufficient samples %s(< 3) for solving 2nd order polynomial regression in 1 variable", dataSet.scadaGenArray.length + "")));
+        }
+        // fit scada and wind arrays to get the parameter matrix Theta
+        var theta = second_degree_regression(dataSet.windsArray, dataSet.scadaGenArray, true);
+        done(null, theta);
+    });
 }

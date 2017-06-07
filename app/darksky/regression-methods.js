@@ -15,7 +15,7 @@ function linear_regression(X, y) {
     }
 }
 
-function second_degree_regression(X, y) {
+function second_degree_regression(X, y, getTheta) {
     var m = y.length;
     var X_square = math.dotMultiply(X, X);
     X = math.concat(math.ones(m, 1), X, X_square);
@@ -25,12 +25,14 @@ function second_degree_regression(X, y) {
     var tr_X = math.multiply(tr, X);
     var tr_y = math.multiply(tr, y);
     var theta = math.multiply(math.inv(tr_X), tr_y);
-
-    return function () {
-        var args = Array.prototype.slice.call(arguments);
-        var args_square = math.dotMultiply(args, args);
-        return math.multiply(math.matrix(math.concat([1], args, args_square)), theta);
+    if (getTheta == null || getTheta == 0 || getTheta == false) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            var args_square = math.dotMultiply(args, args);
+            return math.multiply(math.matrix(math.concat([1], args, args_square)), theta);
+        }
     }
+    return theta._data;
 }
 
 function regression_test() {

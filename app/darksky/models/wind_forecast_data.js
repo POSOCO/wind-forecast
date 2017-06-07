@@ -29,3 +29,21 @@ exports.create = function (speeds_rows, done, conn) {
         done(null, rows);
     });
 };
+
+exports.getForLocation = function (locationTag, startDate, endDate, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.select()
+        .from(tableName)
+        .where("location_tag = ?", locationTag)
+        .where("time >= ?", startDate)
+        .where("time <= ?", endDate);
+    var query = sql.toParam().text;
+    var vals = sql.toParam().values;
+    tempConn.query(query, vals, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows);
+    });
+};

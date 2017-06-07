@@ -1,15 +1,15 @@
 var db = require('../db.js');
 var vsprintf = require("sprintf-js").vsprintf;
 
-var tableName = "scada_wind_generations";
-var tableAttributes = ["id", "time", "location_tag", "generation_mw"];
+var tableName = "wind_speed_power_regression_params";
+var tableAttributes = ["id", "solution_id", "param_degree", "param_value"];
 var squel = require("squel");
 var async = require("async");
 //id is primary key
-//("time", "location_tag") is unique
+//("solution_id", "param_degree") is unique
 
-exports.create = function (wind_gen_objects, done, conn) {
-    if (!(wind_gen_objects.constructor === Array)) {
+exports.create = function (param_rows, done, conn) {
+    if (!(param_rows.constructor === Array)) {
         return done("Input is not an array...");
     }
     var tempConn = conn;
@@ -18,7 +18,7 @@ exports.create = function (wind_gen_objects, done, conn) {
     }
     var sql = squel.insert()
         .into(tableName)
-        .setFieldsRows(wind_gen_objects);
+        .setFieldsRows(param_rows);
     var query = sql.toParam().text;
     query += vsprintf(" ON DUPLICATE KEY UPDATE %s = VALUES(%s);", [tableAttributes[3], tableAttributes[3]]);
     var vals = sql.toParam().values;
@@ -30,16 +30,14 @@ exports.create = function (wind_gen_objects, done, conn) {
     });
 };
 
-exports.getForLocation = function (locationTag, startDate, endDate, done, conn) {
+exports.getForSolutionId = function (solution_id, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
     }
     var sql = squel.select()
         .from(tableName)
-        .where("location_tag = ?", locationTag)
-        .where("time >= ?", startDate)
-        .where("time <= ?", endDate);
+        .where("solution_id = ?", solution_id);
     var query = sql.toParam().text;
     var vals = sql.toParam().values;
     tempConn.query(query, vals, function (err, rows) {

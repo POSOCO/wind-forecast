@@ -14,8 +14,8 @@ Started on 03.06.2017 Saturday by Nagasudhir
     <h2>Fetch Forecast Data</h2>
     <label for="lat_lng_preset_select_input">Presets</label>
     <select name="lat_lng_preset_select_input" id="lat_lng_preset_select_input">
-        <option value="19.0827699,72.7411179">MUMBAI</option>
-        <option value="22.3220425,73.0329983">VADODARA</option>
+        <option value="19.0827699,72.7411179" data-scada_pnt="scada_pnt">MUMBAI</option>
+        <option value="22.3220425,73.0329983" data-scada_pnt="scada_pnt">VADODARA</option>
     </select>
     <button onclick="loadPresets()">Load Presets</button>
     <table>
@@ -57,6 +57,11 @@ Started on 03.06.2017 Saturday by Nagasudhir
                     DarkSky API
                 </button>
             </td>
+            <td></td>
+            <td><input type="text" id="scada_id_input" value=""></td>
+            <td>
+                <button onclick="getScadaDataFromDB()">Show Scada Data</button>
+            </td>
         </tr>
     </table>
     <br>
@@ -64,6 +69,8 @@ Started on 03.06.2017 Saturday by Nagasudhir
     <button onclick="saveDataArrayToDB(1)">Save Forecast Data to Database</button>
     <button onclick="saveDataArrayToDB(0)">Save Time Machine Data to Database</button>
     <button onclick="clearTablesDiv()" id="clear_tables_button">Clear Tables</button>
+    <br><br>
+    <button onclick="fitWindPowerData()" id="fit_wind_power_button">Fit Wind Power Curve</button>
     <br><br>
 
     <div id="tablesDiv"></div>
