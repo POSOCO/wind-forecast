@@ -337,3 +337,61 @@ function fitDataWindPowerFromDB(scada_tag, location_tag, startDate, endDate, don
         done(null, theta);
     });
 }
+
+function predictForDateFromDB(location_tag, dateObj, done) {
+    Regression_Solution.getLatestForLocation(location_tag, convertDateObjToDBStr(dateObj), function (err, rows) {
+        if (err) {
+            return done(err);
+        }
+        var solution_id = rows[0].id;
+        Regression_Param.getForSolutionId(solution_id, function (err, rows) {
+            if (err) {
+                return done(err);
+            }
+            var theta = [];
+            for (var i = 0; i < rows.length; i++) {
+                theta[rows[i]['param_degree']] = [rows[i]['param_value']];
+            }
+        }, null);
+    }, null);
+    var getSolutionId = function (callback) {
+        Regression_Solution.getLatestForLocation(location_tag, convertDateObjToDBStr(dateObj), function (err, rows) {
+            if (err) return callback(err);
+            var solution_id = rows[0].id;
+            callback(null, {'solution_id': solution_id});
+        }, null);
+    };
+    var getRegressionParams = function (prevRes, callback) {
+        Regression_Param.getForSolutionId(prevRes.solution_id, function (err, rows) {
+            if (err) return callback(err);
+            var theta = [];
+            for (var i = 0; i < rows.length; i++) {
+                theta[rows[i]['param_degree']] = [rows[i]['param_value']];
+            }
+            prevRes.theta = theta;
+            callback(null, prevRes);
+        }, null);
+    };
+    var getWindSpeeds = function (prevRes, callback) {
+        Time_Data.getForLocation(location_tag, convertDateObjToDBStr(dateObj), convertDateObjToDBStr(new Date(dateObj.getTime() + 24 * 60 * 60 * 1000)), function (err, rows) {
+            if (err) return callback(err);
+            // sort the objects array by the time key
+            rows.sort(function (a, b) {
+                var keyA = new Date(a.time),
+                    keyB = new Date(b.time);
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+            });
+            prevRes.windSpeeds = rows;
+            callback(null, prevRes);
+        }, null);
+    };
+    var functionsArray = [getSolutionId, getRegressionParams, getWindSpeeds];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        console.log(prevRes);
+        // use rows and theta to predict the scada wind speeds
+    });
+}
