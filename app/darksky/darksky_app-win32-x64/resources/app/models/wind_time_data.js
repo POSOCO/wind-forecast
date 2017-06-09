@@ -16,6 +16,9 @@ exports.create = function (speeds_rows, done, conn) {
     if (conn == null) {
         tempConn = db.get();
     }
+    for (var i = 0; i < speeds_rows.length; i++) {
+        speeds_rows[i]['wind_speed'] *= 1000;
+    }
     var sql = squel.insert()
         .into(tableName)
         .setFieldsRows(speeds_rows);
@@ -44,6 +47,9 @@ exports.getForLocation = function (locationTag, startDate, endDate, done, conn) 
     var vals = sql.toParam().values;
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
+        for (var i = 0; i < rows.length; i++) {
+            rows[i]['wind_speed'] *= 0.001;
+        }
         done(null, rows);
     });
 };

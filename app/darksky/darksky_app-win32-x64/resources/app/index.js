@@ -90,7 +90,7 @@ function getDarkSkyForecastData() {
                         windSpeedsArray_g.push({
                             "time": timeStr,
                             "location_tag": location_tag,
-                            "wind_speed": windSpeed * 100
+                            "wind_speed": windSpeed
                         });
                     }
                 }
@@ -137,7 +137,7 @@ function getDarkSkyTimeMachineData() {
                         windSpeedsArray_g.push({
                             "time": timeStr,
                             "location_tag": location_tag,
-                            "wind_speed": windSpeed * 100
+                            "wind_speed": windSpeed
                         });
                     }
                 }
@@ -169,6 +169,46 @@ function saveDataArrayToDB(isForecastData) {
     } else {
         Time_Data.create(windSpeedsArray_g, callback, null);
     }
+}
+
+function showTimeWindSpeedsFromDB() {
+    var dateInp = new Date(document.getElementById("date_input").value);
+    dateInp.setHours(0);
+    dateInp.setMinutes(0);
+    var location_tag_el = document.getElementById("lat_lng_preset_select_input");
+    var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
+    Time_Data.getForLocation(location_tag, convertDateObjToDBStr(dateInp), convertDateObjToDBStr(new Date(dateInp.getTime() + 24 * 60 * 60 * 1000)), function (err, rows) {
+        if (err) {
+            return WriteLineConsole("Error in fetching wind time data: " + JSON.stringify(err));
+        }
+        var resultArray = [];
+        for (var i = 0; i < rows.length; i++) {
+            resultArray.push([convertDateObjToDBStr(rows[i]['time']), rows[i]['wind_speed']]);
+        }
+        clearTablesDiv();
+        appendTable(resultArray, "tablesDiv");
+        return;
+    }, null);
+}
+
+function showForecastWindSpeedsFromDB() {
+    var dateInp = new Date(document.getElementById("date_input").value);
+    dateInp.setHours(0);
+    dateInp.setMinutes(0);
+    var location_tag_el = document.getElementById("lat_lng_preset_select_input");
+    var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
+    Forecast_Data.getForLocation(location_tag, convertDateObjToDBStr(dateInp), convertDateObjToDBStr(new Date(dateInp.getTime() + 24 * 60 * 60 * 1000)), function (err, rows) {
+        if (err) {
+            return WriteLineConsole("Error in fetching wind time data: " + JSON.stringify(err));
+        }
+        var resultArray = [];
+        for (var i = 0; i < rows.length; i++) {
+            resultArray.push([convertDateObjToDBStr(rows[i]['time']), rows[i]['wind_speed']]);
+        }
+        clearTablesDiv();
+        appendTable(resultArray, "tablesDiv");
+        return;
+    }, null);
 }
 
 function loadPresets() {
@@ -209,10 +249,6 @@ function scada_file_upload_click() {
         if (scadaObjectsArray.length == 0) {
             return WriteLineConsole("Zero rows present the csv file");
         }
-        // Saving data*1000 so that three decimals places can be preserved
-        for (var i = 0; i < scadaObjectsArray.length; i++) {
-            scadaObjectsArray[i]['generation_mw'] *= 1000;
-        }
         console.log(scadaObjectsArray);
         Scada_Wind_Generation.create(scadaObjectsArray, function (err, result) {
             if (err) {
@@ -236,7 +272,7 @@ function getScadaDataFromDB() {
         console.log(rows);
         var scadaRowsArray = [];
         for (var i = 0; i < rows.length; i++) {
-            scadaRowsArray.push([convertDateObjToDBStr(rows[i]["time"]), rows[i]["generation_mw"] / 1000]);
+            scadaRowsArray.push([convertDateObjToDBStr(rows[i]["time"]), rows[i]["generation_mw"]]);
         }
         clearTablesDiv();
         appendTable(scadaRowsArray, "tablesDiv");
@@ -324,8 +360,8 @@ function fitDataWindPowerFromDB(scada_tag, location_tag, startDate, endDate, don
             var sampleTime = scadaGenObjectsArray[i].time;
             var index = findIndexInObjectsArray(windObjectsArray, "time", sampleTime);
             if (index != -1) {
-                dataSet.windsArray.push([windObjectsArray[index]["wind_speed"] * 0.01]);
-                dataSet.scadaGenArray.push([scadaGenObjectsArray[index]["generation_mw"] * 0.001]);
+                dataSet.windsArray.push([windObjectsArray[index]["wind_speed"]]);
+                dataSet.scadaGenArray.push([scadaGenObjectsArray[index]["generation_mw"]]);
             }
         }
         // check if we have at least 3 samples
@@ -335,5 +371,94 @@ function fitDataWindPowerFromDB(scada_tag, location_tag, startDate, endDate, don
         // fit scada and wind arrays to get the parameter matrix Theta
         var theta = second_degree_regression(dataSet.windsArray, dataSet.scadaGenArray, true);
         done(null, theta);
+    });
+}
+
+function predictPower() {
+    var dateInp = new Date(document.getElementById("date_input").value);
+    dateInp.setHours(0);
+    dateInp.setMinutes(0);
+    var location_tag_el = document.getElementById("lat_lng_preset_select_input");
+    var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
+    predictForDateFromDB(location_tag, dateInp, function (err, results) {
+        if (err) {
+            return WriteLineConsole("Error in predicting wind speeds: " + JSON.stringify(err));
+        }
+        console.log(results.predictedPowers);
+        var resultArray = [];
+        for (var i = 0; i < results.predictedPowers.length; i++) {
+            resultArray.push([convertDateObjToDBStr(results['times'][i][0]), results['predictedPowers'][i][0]]);
+        }
+        clearTablesDiv();
+        appendTable(resultArray, "tablesDiv");
+        return;
+    });
+}
+
+function predictForDateFromDB(location_tag, dateObj, done) {
+    Regression_Solution.getLatestForLocation(location_tag, convertDateObjToDBStr(dateObj), function (err, rows) {
+        if (err) {
+            return done(err);
+        }
+        var solution_id = rows[0].id;
+        Regression_Param.getForSolutionId(solution_id, function (err, rows) {
+            if (err) {
+                return done(err);
+            }
+            var theta = [];
+            for (var i = 0; i < rows.length; i++) {
+                theta[rows[i]['param_degree']] = [rows[i]['param_value']];
+            }
+        }, null);
+    }, null);
+    var getSolutionId = function (callback) {
+        Regression_Solution.getLatestForLocation(location_tag, convertDateObjToDBStr(dateObj), function (err, rows) {
+            if (err) return callback(err);
+            var solution_id = rows[0].id;
+            callback(null, {'solution_id': solution_id});
+        }, null);
+    };
+    var getRegressionParams = function (prevRes, callback) {
+        Regression_Param.getForSolutionId(prevRes.solution_id, function (err, rows) {
+            if (err) return callback(err);
+            var theta = [];
+            for (var i = 0; i < rows.length; i++) {
+                theta[rows[i]['param_degree']] = [rows[i]['param_value']];
+            }
+            prevRes.theta = theta;
+            callback(null, prevRes);
+        }, null);
+    };
+    var getWindSpeeds = function (prevRes, callback) {
+        Time_Data.getForLocation(location_tag, convertDateObjToDBStr(dateObj), convertDateObjToDBStr(new Date(dateObj.getTime() + 24 * 60 * 60 * 1000)), function (err, rows) {
+            if (err) return callback(err);
+            // sort the objects array by the time key
+            rows.sort(function (a, b) {
+                var keyA = new Date(a.time),
+                    keyB = new Date(b.time);
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+            });
+            prevRes.windSpeeds = rows;
+            callback(null, prevRes);
+        }, null);
+    };
+    var functionsArray = [getSolutionId, getRegressionParams, getWindSpeeds];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        console.log(prevRes);
+        // use rows and theta to predict the scada wind speeds
+        var windSpeeds = prevRes.windSpeeds;
+        var windSpeedsArray = [];
+        var timesArray = [];
+        for (var i = 0; i < windSpeeds.length; i++) {
+            windSpeedsArray.push([windSpeeds[i].wind_speed]);
+            timesArray.push([windSpeeds[i].time]);
+        }
+        var theta = prevRes.theta;
+        var predictedPowers = math.multiply(math.matrix(math.concat(math.ones(windSpeedsArray.length, 1), math.matrix(windSpeedsArray), math.dotMultiply(math.matrix(windSpeedsArray), math.matrix(windSpeedsArray)))), theta);
+        done(null, {'predictedPowers': predictedPowers._data, 'times': timesArray});
     });
 }

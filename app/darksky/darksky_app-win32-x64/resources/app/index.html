@@ -65,15 +65,22 @@ Started on 03.06.2017 Saturday by Nagasudhir
         </tr>
     </table>
     <br>
-    <button onclick="exportTableAsCsv()">Export Table As CSV</button>
-    <button onclick="saveDataArrayToDB(1)">Save Forecast Data to Database</button>
-    <button onclick="saveDataArrayToDB(0)">Save Time Machine Data to Database</button>
-    <button onclick="clearTablesDiv()" id="clear_tables_button">Clear Tables</button>
+    <button onclick="showForecastWindSpeedsFromDB()">Show Forecast Wind speeds from Database</button>
+    <button onclick="showTimeWindSpeedsFromDB()">Show Time Machine Wind speeds from Database</button>
+    <br><br>
+    <button onclick="saveDataArrayToDB(1)">Save Forecast Wind speeds to Database</button>
+    <button onclick="saveDataArrayToDB(0)">Save Time Machine Wind speeds to Database</button>
     <br><br>
     <button onclick="fitWindPowerData()" id="fit_wind_power_button">Fit Wind Power Curve</button>
+    <button onclick="predictPower()" id="predict_wind_power_button">Predict Wind Generation</button>
     <br><br>
 
+    <button onclick="exportTableAsCsv()">Export Table As CSV</button>
+    <button onclick="clearTablesDiv()" id="clear_tables_button">Clear Tables</button>
+    <br>
+
     <div id="tablesDiv"></div>
+    <br>
     <button onclick="clearConsole()">Clear Console</button>
     <div id="console" style="width:30%;height: 200px;overflow: auto;"></div>
 </div>
