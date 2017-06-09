@@ -16,6 +16,9 @@ exports.create = function (wind_gen_objects, done, conn) {
     if (conn == null) {
         tempConn = db.get();
     }
+    for (var i = 0; i < wind_gen_objects.length; i++) {
+        wind_gen_objects[i]['generation_mw'] *= 1000;
+    }
     var sql = squel.insert()
         .into(tableName)
         .setFieldsRows(wind_gen_objects);
@@ -44,6 +47,9 @@ exports.getForLocation = function (locationTag, startDate, endDate, done, conn) 
     var vals = sql.toParam().values;
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
+        for (var i = 0; i < rows.length; i++) {
+            rows[i]['generation_mw'] *= 0.001;
+        }
         done(null, rows);
     });
 };

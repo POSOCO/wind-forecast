@@ -46,5 +46,4 @@ function regression_test() {
     console.log("f(5) = " + f(5));
     console.log("f(6) = " + f(6));
     console.log("f(9) = " + f(9));
-    console.log("f([[1],[2],[3],[4]]) = " + f([[1], [2], [3], [4]]));
 }

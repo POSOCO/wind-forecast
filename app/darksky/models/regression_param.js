@@ -16,6 +16,9 @@ exports.create = function (param_rows, done, conn) {
     if (conn == null) {
         tempConn = db.get();
     }
+    for (var i = 0; i < param_rows.length; i++) {
+        param_rows[i]['param_value'] *= 10000;
+    }
     var sql = squel.insert()
         .into(tableName)
         .setFieldsRows(param_rows);
@@ -42,6 +45,9 @@ exports.getForSolutionId = function (solution_id, done, conn) {
     var vals = sql.toParam().values;
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
+        for (var i = 0; i < rows.length; i++) {
+            rows[i]['param_value'] *= 0.0001;
+        }
         done(null, rows);
     });
 };
