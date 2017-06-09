@@ -366,7 +366,7 @@ function predictForDateFromDB(location_tag, dateObj, done) {
             if (err) return callback(err);
             var theta = [];
             for (var i = 0; i < rows.length; i++) {
-                theta[rows[i]['param_degree']] = [rows[i]['param_value']];
+                theta[rows[i]['param_degree']] = [0.001 * rows[i]['param_value']];
             }
             prevRes.theta = theta;
             callback(null, prevRes);
@@ -393,5 +393,15 @@ function predictForDateFromDB(location_tag, dateObj, done) {
         if (err) return done(err);
         console.log(prevRes);
         // use rows and theta to predict the scada wind speeds
+        var windSpeeds = prevRes.windSpeeds;
+        var windSpeedsArray = [];
+        var timesArray = [];
+        for (var i = 0; i < windSpeeds.length; i++) {
+            windSpeedsArray.push([0.01 * windSpeeds[i].wind_speed]);
+            timesArray.push([windSpeeds[i].time]);
+        }
+        var theta = prevRes.theta;
+        var predictedSpeeds = math.multiply(math.matrix(math.concat(math.ones(windSpeedsArray.length, 1), windSpeedsArray, math.dotMultiply(windSpeedsArray, windSpeedsArray))), theta);
+        done(null, predictedSpeeds);
     });
 }
