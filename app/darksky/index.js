@@ -213,11 +213,11 @@ function showForecastWindSpeedsFromDB() {
 
 function loadPresets() {
     var selElement = document.getElementById("lat_lng_preset_select_input");
-    var optionText = selElement.options[selElement.selectedIndex].value;
     var scadaPntText = selElement.options[selElement.selectedIndex].getAttribute("data-scada_pnt");
-    var latLng = optionText.split(",");
-    document.getElementById("lat_input").value = latLng[0].trim();
-    document.getElementById("lng_input").value = latLng[1].trim();
+    var latText = selElement.options[selElement.selectedIndex].getAttribute("data-lat");
+    var lngText = selElement.options[selElement.selectedIndex].getAttribute("data-lng");
+    document.getElementById("lat_input").value = latText.trim();
+    document.getElementById("lng_input").value = lngText.trim();
     document.getElementById("scada_id_input").value = scadaPntText;
 }
 
