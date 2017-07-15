@@ -114,45 +114,65 @@ function getDarkSkyTimeMachineData() {
     var lat = document.getElementById("lat_input").value;
     var lng = document.getElementById("lng_input").value;
     var dateInp = document.getElementById("date_input").value;
+    var toDateInp = document.getElementById("to_date_input").value;
     var unixTime = convertDateObjToUnixTime(new Date(dateInp));
     var location_tag_el = document.getElementById("lat_lng_preset_select_input");
     var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
-    fetchDarkSkyTimeMachineData(key, lat, lng, unixTime, function (err, data) {
+    if (toDateInp == "") {
+        toDateInp = dateInp;
+    }
+    var numDays = ((new Date(toDateInp)).getTime() - (new Date(dateInp)).getTime()) / (24 * 60 * 60 * 1000);
+    var dayIterators = Array.apply(null, {length: numDays + 1}).map(Function.call, Number);
+    //console.log(dayIterators);
+    var getDayData = function (dayIterator, callback) {
+        fetchDarkSkyTimeMachineData(key, lat, lng, (unixTime + dayIterator * 24 * 60 * 60), function (err, data) {
+            if (err) {
+                return callback(err);
+            }
+            //WriteLineConsole(JSON.stringify(data));
+            if (typeof data.hourly != 'undefined' && typeof data.hourly.data != 'undefined') {
+                var hourlyDataArray = data.hourly.data;
+                if (hourlyDataArray.constructor === Array) {
+                    for (var i = 0; i < hourlyDataArray.length; i++) {
+                        var timeStr = convertDateObjToDBStr(convertUnixTimeToDateObj(hourlyDataArray[i]['time']));
+                        var windSpeed = hourlyDataArray[i]['windSpeed'];
+                        windSpeed = convertToNumberString(windSpeed);
+                        WriteLineConsole(timeStr + " " + windSpeed);
+                        if (windSpeed != "") {
+                            windSpeedsArray_g.push({
+                                "time": timeStr,
+                                "location_tag": location_tag,
+                                "wind_speed": windSpeed
+                            });
+                        }
+                    }
+                    return callback(null);
+                }
+                WriteLineConsole("Response was not in required format...");
+                return callback(null);
+            }
+            WriteLineConsole("Response was not in required format...");
+            return callback(null);
+        });
+    };
+    //finding each owner Id
+    var temp_windSpeedsArray_g = windSpeedsArray_g;
+    windSpeedsArray_g = [];
+    async.mapSeries(dayIterators, getDayData, function (err, results) {
         if (err) {
             WriteLineConsole(JSON.stringify(err));
-            return;
         }
-        if (typeof data.hourly != 'undefined' && typeof data.hourly.data != 'undefined') {
-            var hourlyDataArray = data.hourly.data;
-            var resultArray = [];
-            if (hourlyDataArray.constructor === Array) {
-                windSpeedsArray_g = [];
-                for (var i = 0; i < hourlyDataArray.length; i++) {
-                    var timeStr = convertDateObjToDBStr(convertUnixTimeToDateObj(hourlyDataArray[i]['time']));
-                    var windSpeed = hourlyDataArray[i]['windSpeed'];
-                    windSpeed = convertToNumberString(windSpeed);
-                    resultArray[i] = [timeStr, windSpeed];
-                    WriteLineConsole(timeStr + " " + windSpeed);
-                    if (windSpeed != "") {
-                        windSpeedsArray_g.push({
-                            "time": timeStr,
-                            "location_tag": location_tag,
-                            "wind_speed": windSpeed
-                        });
-                    }
-                }
-                //WriteLineConsole(resultArray);
-                clearTablesDiv();
-                appendTable(resultArray, "tablesDiv");
-                return;
-            }
-            else {
-                WriteLineConsole("Response was not in required format...");
-            }
+        if (windSpeedsArray_g.length < 0) {
+            windSpeedsArray_g = temp_windSpeedsArray_g;
+            return
         }
-        else {
-            WriteLineConsole("Response was not in required format...");
+        var resultArray = [];
+        for (var i = 0; i < windSpeedsArray_g.length; i++) {
+            resultArray[i] = [windSpeedsArray_g[i].time, windSpeedsArray_g[i].wind_speed, windSpeedsArray_g[i].location_tag];
         }
+        clearTablesDiv();
+        appendTable(resultArray, "tablesDiv");
+        return;
     });
 }
 
