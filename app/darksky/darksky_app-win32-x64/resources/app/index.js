@@ -114,45 +114,65 @@ function getDarkSkyTimeMachineData() {
     var lat = document.getElementById("lat_input").value;
     var lng = document.getElementById("lng_input").value;
     var dateInp = document.getElementById("date_input").value;
+    var toDateInp = document.getElementById("to_date_input").value;
     var unixTime = convertDateObjToUnixTime(new Date(dateInp));
     var location_tag_el = document.getElementById("lat_lng_preset_select_input");
     var location_tag = location_tag_el.options[location_tag_el.selectedIndex].innerHTML;
-    fetchDarkSkyTimeMachineData(key, lat, lng, unixTime, function (err, data) {
+    if (toDateInp == "") {
+        toDateInp = dateInp;
+    }
+    var numDays = ((new Date(toDateInp)).getTime() - (new Date(dateInp)).getTime()) / (24 * 60 * 60 * 1000);
+    var dayIterators = Array.apply(null, {length: numDays + 1}).map(Function.call, Number);
+    //console.log(dayIterators);
+    var getDayData = function (dayIterator, callback) {
+        fetchDarkSkyTimeMachineData(key, lat, lng, (unixTime + dayIterator * 24 * 60 * 60), function (err, data) {
+            if (err) {
+                return callback(err);
+            }
+            //WriteLineConsole(JSON.stringify(data));
+            if (typeof data.hourly != 'undefined' && typeof data.hourly.data != 'undefined') {
+                var hourlyDataArray = data.hourly.data;
+                if (hourlyDataArray.constructor === Array) {
+                    for (var i = 0; i < hourlyDataArray.length; i++) {
+                        var timeStr = convertDateObjToDBStr(convertUnixTimeToDateObj(hourlyDataArray[i]['time']));
+                        var windSpeed = hourlyDataArray[i]['windSpeed'];
+                        windSpeed = convertToNumberString(windSpeed);
+                        WriteLineConsole(timeStr + " " + windSpeed);
+                        if (windSpeed != "") {
+                            windSpeedsArray_g.push({
+                                "time": timeStr,
+                                "location_tag": location_tag,
+                                "wind_speed": windSpeed
+                            });
+                        }
+                    }
+                    return callback(null);
+                }
+                WriteLineConsole("Response was not in required format...");
+                return callback(null);
+            }
+            WriteLineConsole("Response was not in required format...");
+            return callback(null);
+        });
+    };
+    //finding each owner Id
+    var temp_windSpeedsArray_g = windSpeedsArray_g;
+    windSpeedsArray_g = [];
+    async.mapSeries(dayIterators, getDayData, function (err, results) {
         if (err) {
             WriteLineConsole(JSON.stringify(err));
-            return;
         }
-        if (typeof data.hourly != 'undefined' && typeof data.hourly.data != 'undefined') {
-            var hourlyDataArray = data.hourly.data;
-            var resultArray = [];
-            if (hourlyDataArray.constructor === Array) {
-                windSpeedsArray_g = [];
-                for (var i = 0; i < hourlyDataArray.length; i++) {
-                    var timeStr = convertDateObjToDBStr(convertUnixTimeToDateObj(hourlyDataArray[i]['time']));
-                    var windSpeed = hourlyDataArray[i]['windSpeed'];
-                    windSpeed = convertToNumberString(windSpeed);
-                    resultArray[i] = [timeStr, windSpeed];
-                    WriteLineConsole(timeStr + " " + windSpeed);
-                    if (windSpeed != "") {
-                        windSpeedsArray_g.push({
-                            "time": timeStr,
-                            "location_tag": location_tag,
-                            "wind_speed": windSpeed
-                        });
-                    }
-                }
-                //WriteLineConsole(resultArray);
-                clearTablesDiv();
-                appendTable(resultArray, "tablesDiv");
-                return;
-            }
-            else {
-                WriteLineConsole("Response was not in required format...");
-            }
+        if (windSpeedsArray_g.length < 0) {
+            windSpeedsArray_g = temp_windSpeedsArray_g;
+            return
         }
-        else {
-            WriteLineConsole("Response was not in required format...");
+        var resultArray = [];
+        for (var i = 0; i < windSpeedsArray_g.length; i++) {
+            resultArray[i] = [windSpeedsArray_g[i].time, windSpeedsArray_g[i].wind_speed, windSpeedsArray_g[i].location_tag];
         }
+        clearTablesDiv();
+        appendTable(resultArray, "tablesDiv");
+        return;
     });
 }
 
@@ -461,4 +481,21 @@ function predictForDateFromDB(location_tag, dateObj, done) {
         var predictedPowers = math.multiply(math.matrix(math.concat(math.ones(windSpeedsArray.length, 1), math.matrix(windSpeedsArray), math.dotMultiply(math.matrix(windSpeedsArray), math.matrix(windSpeedsArray)))), theta);
         done(null, {'predictedPowers': predictedPowers._data, 'times': timesArray});
     });
+}
+
+function getLatLngLocFromUI() {
+    //stub
+    var selElement = document.getElementById("lat_lng_preset_select_input");
+    var scadaPntText = selElement.options[selElement.selectedIndex].getAttribute("data-scada_pnt");
+    var key = document.getElementById("api_key_input").value;
+    var lat = document.getElementById("lat_input").value;
+    var lng = document.getElementById("lng_input").value;
+    var location_tag = selElement.options[selElement.selectedIndex].innerHTML;
+    if (location_tag.toLowerCase() == 'gujarat') {
+        lat = [23.1310443, 23.0333339, 23.0963047, 23.240534, 23.2453161, 23.2453161, 23.2215293, 21.9374563, 21.9916328, 22.0581784, 22.1304097, 21.6346825, 21.8567251, 21.325629, 23.5333141, 21.6770205, 22.8570958, 22.8570958, 20.6280484, 22.1028112, 22.0085666, 22.6907419, 21.8998088, 22.9493141, 23.1233208, 22.0085666, 21.5670087, 21.7577664, 22.7368837, 21.331021, 22.3374546, 22.0881251, 23.3888118, 21.9553832, 21.1062613, 22.4058062, 23.374364, 21.7747137, 21.7289681, 22.0721563, 23.9217204, 21.7577664, 23.0208789, 21.583029, 23.3493677, 22.3539441, 21.325629, 22.3080207, 22.850231, 20.8139291, 21.9189855, 22.2475747, 22.6716698, 22.4248734];
+        lng = [70.0702211, 68.906443, 68.7948178, 70.6094287, 70.6681504, 70.6681504, 70.5601859, 69.2273902, 69.2403021, 70.2044391, 69.9038333, 72.1284478, 69.3397895, 70.5749553, 72.5565702, 69.5454312, 69.2265487, 69.2265487, 73.1676613, 69.9190703, 69.7120392, 73.5513662, 69.3087745, 69.0940352, 68.8512754, 69.7120392, 72.1424532, 72.1135572, 70.4215049, 69.8906818, 71.0075338, 71.0468458, 69.0944338, 71.1858699, 73.2560634, 70.6885503, 72.6984604, 70.1263947, 70.1059863, 69.3453353, 72.9956242, 72.1135572, 72.5352713, 70.4510653, 69.118048, 70.2531753, 70.5749553, 70.3098907, 70.9855703, 73.0750753, 71.440841, 70.115229, 70.7591165, 71.1904835];
+        location_tag = ["Vershamedi(SUZLON)", "Suthari (SUZLON)", "Sindhodi (SUZLON)", "Vandhiya (VESTAS)", "132KV Sikharpur (VESTAS)", "66KV Sikharpur (SUZLON)", "Jangi (SUZLON)", "Navadra (GEDA)", "Bhogat (GEDA)", "Sadodar (WWIL)", "132 KV Enercon (WWIL)", "Ukharla (SUZLON)", "Gandhvi (SUZLON)", "Baradiya (SUZLON)", "Vasai(SUZLON)", "Kuchhdi(SUZLON)", "Layza(SUZLON)", "Tunkar(SUZLON)", "Jamanwada (SUZLON)", "Tebhda (WWIL)", "Mota Gunda (ELECON)", "Vinjalpar (ELECON)", "Lamba (GEDA)", "Changdai (SUZLON)", "Vanku(SUZLON)", "132 KV Mota gunda (SUZLON)", "Sanodar (SUZLON)", "Rajapara (SUZLON)", "Balambha (SUZLON)", "Gorsar(SUZLON)", "Parevada(SUZLON)", "Halenda(SUZLON)", "Rasaliya (WWIL)", "Kotda Pitha(SH.RAM EPC)", "TITHWA(AZALEA)", "Anandpar(INOX)", "220KV Amarapur (KINTECH)", "Dhank(GEDA)", "Mervadar (GEDA)", "Patelka(GEDA)", "Vadali(WWIL)", "Rajpara(SUZLON)", "Koblavadar(POWERICA)", "Sukhpur(INOX)", "Ukheda(SUZLON)", "Nanimatli(POINEER)", "Baradiya(KP ENERGY)", "Dhudesiya(POINEER)", "Ratabhe(SITEC)", "Degam(KP ENERGY)", "Nanikundal(STEC)", "Galla(SITEC)", "Parabadi(WWIL)", "Chotila(INOX)"];
+        scadaPntText = ["Vershamedi(SUZLON)", "Suthari (SUZLON)", "Sindhodi (SUZLON)", "Vandhiya (VESTAS)", "132KV Sikharpur (VESTAS)", "66KV Sikharpur (SUZLON)", "Jangi (SUZLON)", "Navadra (GEDA)", "Bhogat (GEDA)", "Sadodar (WWIL)", "132 KV Enercon (WWIL)", "Ukharla (SUZLON)", "Gandhvi (SUZLON)", "Baradiya (SUZLON)", "Vasai(SUZLON)", "Kuchhdi(SUZLON)", "Layza(SUZLON)", "Tunkar(SUZLON)", "Jamanwada (SUZLON)", "Tebhda (WWIL)", "Mota Gunda (ELECON)", "Vinjalpar (ELECON)", "Lamba (GEDA)", "Changdai (SUZLON)", "Vanku(SUZLON)", "132 KV Mota gunda (SUZLON)", "Sanodar (SUZLON)", "Rajapara (SUZLON)", "Balambha (SUZLON)", "Gorsar(SUZLON)", "Parevada(SUZLON)", "Halenda(SUZLON)", "Rasaliya (WWIL)", "Kotda Pitha(SH.RAM EPC)", "TITHWA(AZALEA)", "Anandpar(INOX)", "220KV Amarapur (KINTECH)", "Dhank(GEDA)", "Mervadar (GEDA)", "Patelka(GEDA)", "Vadali(WWIL)", "Rajpara(SUZLON)", "Koblavadar(POWERICA)", "Sukhpur(INOX)", "Ukheda(SUZLON)", "Nanimatli(POINEER)", "Baradiya(KP ENERGY)", "Dhudesiya(POINEER)", "Ratabhe(SITEC)", "Degam(KP ENERGY)", "Nanikundal(STEC)", "Galla(SITEC)", "Parabadi(WWIL)", "Chotila(INOX)"];
+    }
+    return {key: key, lat: lat, lng: lng, location_tag: location_tag, scadaPntText: scadaPntText};
 }
